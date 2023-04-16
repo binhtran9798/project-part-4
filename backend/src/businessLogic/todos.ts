@@ -5,11 +5,9 @@ import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { createLogger } from '../utils/logger'
 import * as uuid from 'uuid'
-// import * as createError from 'http-errors'
 
-// TODO: Implement businessLogic
 const logger = createLogger('todosAccess');
-const attachmentUtils = new AttachmentUtils();
+const attachment = new AttachmentUtils();
 const todosAccess = new TodosAccess();
 
 export async function createTodo(
@@ -18,17 +16,14 @@ export async function createTodo(
 ): Promise<TodoItem> {
     logger.info('createTodo');
     const todoId = uuid.v4();
-    const createdAt = new Date().toISOString();
-    const s3AttachmentUrl = attachmentUtils.getAttachmentUrl(todoId);
     const newItem = {
         userId,
         todoId,
-        createdAt,
+        createdAt: new Date().toISOString(),
         done: false,
-        attachmentUrl: s3AttachmentUrl,
+        attachmentUrl: attachment.getAttachmentUrl(todoId),
         ...newTodo,
     };
-
     return await todosAccess.createItem(newItem);
 };
 
@@ -44,7 +39,7 @@ export async function generateUploadUrl(
     todoId: string,
 ): Promise<string> {
     logger.info('generateUploadUrl');
-    return attachmentUtils.getUploadUrl(todoId)
+    return attachment.getFileUploadedUrl(todoId)
 }
 
 export async function getTodosForUser(userId: string): Promise<TodoItem[]> {
