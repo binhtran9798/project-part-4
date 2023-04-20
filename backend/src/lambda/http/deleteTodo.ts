@@ -1,8 +1,7 @@
 import 'source-map-support/register'
-
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
-
-import { deleteTodo } from '../../businessLogic/todos'
+import { responseUtils } from '../../helpers/responseUtils';
+import { deleteTodo } from '../../dataLayer/todos'
 import { getUserId } from '../utils'
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -12,12 +11,5 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
       todoId,
       userId
     )
-    return {
-      statusCode: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': true
-      },
-      body: ''
-    };
+    return new responseUtils().successWithoutBody(204);
   }

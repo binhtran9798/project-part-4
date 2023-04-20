@@ -1,27 +1,26 @@
 import * as AWS from 'aws-sdk'
-import * as AWSXRay from 'aws-xray-sdk'
+const AWSXRay = require('aws-xray-sdk');
 
 const XAWS = AWSXRay.captureAWS(AWS)
-
-// TODO: Implement the fileStogare logic
-const s3Bucket = process.env.ATTACHMENT_S3_BUCKET;
-const expiration = process.env.SIGNED_URL_EXPIRATION;
 
 export class AttachmentUtils{
     constructor(
         private readonly s3 = new XAWS.S3({ signatureVersion: 'v4' }),
-        private readonly bucketName = s3Bucket
     ) {}
 
     getAttachmentUrl(todoId: string) {
-        return `https://${this.bucketName}.s3.amazonaws.com/${todoId}`;
+        return `https://${process.env.ATTACHMENT_S3_BUCKET}.s3.amazonaws.com/${todoId}`;
+    }
+
+    getDocumentClient(){
+        return new XAWS.DynamoDB.DocumentClient();
     }
 
     getFileUploadedUrl(todoId: string): string {
         const url = this.s3.getSignedUrl('putObject', {
-            Bucket: this.bucketName,
+            Bucket: process.env.ATTACHMENT_S3_BUCKET,
             Key: todoId,
-            Expires: expiration
+            Expires: process.env.SIGNED_URL_EXPIRATION
         })
         return url as string;
     }

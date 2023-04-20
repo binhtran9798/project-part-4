@@ -1,58 +1,53 @@
-import * as AWS from 'aws-sdk'
-const AWSXRay = require('aws-xray-sdk');
-import { DocumentClient } from 'aws-sdk/clients/dynamodb'
-import { createLogger } from '../utils/logger'
+import { AttachmentUtils } from '../helpers/attachmentUtils';
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate';
+import { createLogger } from '../utils/logger'
 
-const XAWS = AWSXRay.captureAWS(AWS)
-
-const logger = createLogger('TodosAccess')
+const attachment = new AttachmentUtils()
+const logger = createLogger('todos');
 
 export class TodosAccess {
     constructor(
-        private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
+        private readonly docClient =  attachment.getDocumentClient(),
         private readonly table = process.env.TODOS_TABLE,
-        private readonly index = process.env.TODOS_CREATED_AT_INDEX
     ) {}
 
     async createItem(todoItem: TodoItem): Promise<TodoItem> {
-        logger.info('createItem');
-        logger.info('new item: ', todoItem);
-        await this.docClient
-        .put({
+        const queryParams = {
             TableName: this.table,
             Item: todoItem
-        }).promise()
+        };
+        await this.docClient
+        .put(queryParams).promise()
+        logger.info('createItem successfully');
         return todoItem as TodoItem;
     }
 
     async deleteItem(todoId: string, userId: string) {
-        logger.info('deleteItem');
-        logger.info('item to delete: ', todoId);
-        logger.info('from user: ', userId);
-        await this.docClient
-        .delete({
+        const queryParams = {
             TableName: this.table,
             Key: {
                 todoId,
                 userId
             }
-        }).promise()
+        };
+        await this.docClient
+        .delete(queryParams).promise()
+        logger.info('createItem successfully');
     }
 
     async getItems(userId: string): Promise <TodoItem[]> {
-        logger.info('getItems');
-        logger.info('get Items for user: ', userId);
-        const data = await this.docClient
-        .query({
+        const queryParams = {
             TableName: this.table,
-            IndexName: this.index,
+            IndexName: process.env.TODOS_CREATED_AT_INDEX,
             KeyConditionExpression: 'userId = :userId',
             ExpressionAttributeValues: {
                 ':userId': userId
             }
-        }).promise()
+        };
+        const data = await this.docClient
+        .query(queryParams).promise()
+        logger.info('createItem successfully');
         return data.Items as TodoItem[];
     }
 
@@ -61,12 +56,7 @@ export class TodosAccess {
         userId: string,
         updateTodo: TodoUpdate
     ) {
-        logger.info('updateItem');
-        logger.info('Update Item for user: ', userId);
-        logger.info('Item to update: ', todoId);
-        logger.info('updateTodo: ', updateTodo);
-        await this.docClient
-        .update({
+        const queryParams = {
             TableName: this.table,
             Key: {
                 todoId,
@@ -81,6 +71,9 @@ export class TodosAccess {
             ExpressionAttributeNames: {
                 '#name': 'name'
             },
-        }).promise()
+        };
+        await this.docClient
+        .update(queryParams).promise()
+        logger.info('createItem successfully');
     }
 }
