@@ -33,6 +33,12 @@ export async function generateUploadUrl(
     return attachment.getFileUploadedUrl(todoId)
 };
 
+export async function deleteImage(
+    todoId: string,
+) {
+    return attachment.deleteImage(todoId)
+};
+
 export async function deleteTodo(
     todoId: string,
     userId: string
